@@ -4,7 +4,6 @@ from abc import ABCMeta, abstractmethod
 __all__ = [
     'DisjointSetSimple',
     'DisjointSet',
-    'Node'
 ]
 
 
@@ -25,11 +24,15 @@ class DisjointSetBase(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def find(self, node):
+    def union(self, x, y):
         pass
 
     @abstractmethod
-    def union(self, a_node, b_node):
+    def _find(self, node):
+        pass
+
+    @abstractmethod
+    def _path_compression(self, node, root):
         pass
 
 
@@ -54,7 +57,26 @@ class DisjointSetSimple(DisjointSetBase):
 
         return self.forest[0]
 
-    def find(self, node):
+    def union(self, node1, node2):
+        node1_root = self._find(node1)
+        node2_root = self._find(node2)
+
+        if node1_root == node2_root:
+            return
+
+        if (self.rank[node1_root] > self.rank[node2_root]
+                or self.rank[node1_root] == self.rank[node2_root]):
+
+            self.rank[node1_root] += 1
+            self.rank[node2_root] = 0
+            self.forest[node2_root] = node1_root
+
+        else:
+            self.rank[node2_root] += 1
+            self.rank[node1_root] = 0
+            self.forest[node1_root] = node2_root
+
+    def _find(self, node):
         """
 
         :param node: int
@@ -72,28 +94,6 @@ class DisjointSetSimple(DisjointSetBase):
 
         return root
 
-    def union(self, node1, node2):
-        node1_root = self.find(node1)
-        node2_root = self.find(node2)
-
-        if node1_root == node2_root:
-            return
-
-        elif self.rank[node1_root] > self.rank[node2_root]:
-            self.rank[node1_root] += 1
-            self.rank[node2_root] = 0
-            self.forest[node2_root] = node1_root
-
-        elif self.rank[node1_root] < self.rank[node2_root]:
-            self.rank[node2_root] += 1
-            self.rank[node1_root] = 0
-            self.forest[node1_root] = node2_root
-
-        else:
-            self.rank[node1_root] += 1
-            self.rank[node2_root] = 0
-            self.forest[node2_root] = node1_root
-
     def _path_compression(self, node, root):
         while self.forest[node] != node:
             self.forest[node], node = root, self.forest[node]
@@ -107,10 +107,27 @@ class DisjointSet(DisjointSetBase):
         super().__init__({})
 
     def make_set(self, data):
-        node = Node(rank=0, data=data)
+        node = _Node(rank=0, data=data)
         self.forest[data] = node
 
-    def find(self, node):
+    def union(self, data1, data2):
+        node1 = self._find(node=self._get_node(data1))
+        node2 = self._find(node=self._get_node(data2))
+
+        if node1 == node2:
+            return
+
+        if node1.rank > node2.rank or node1.rank == node2.rank:
+            node1.rank += 1
+            node2.rank = 0
+            node2.parent = node1
+
+        else:
+            node2.rank += 1
+            node1.rank = 0
+            node1.parent = node2
+
+    def _find(self, node):
         root = node
 
         while root.parent != root:
@@ -119,28 +136,6 @@ class DisjointSet(DisjointSetBase):
         self._path_compression(node=node, root=root)
 
         return root
-
-    def union(self, data1, data2):
-        node1 = self.find(node=self._get_node(data1))
-        node2 = self.find(node=self._get_node(data2))
-
-        if node1 == node2:
-            return
-
-        elif node1.rank > node2.rank:
-            node1.rank += 1
-            node2.rank = 0
-            node2.parent = node1
-
-        elif node1.rank < node2.rank:
-            node2.rank += 1
-            node1.rank = 0
-            node1.parent = node2
-
-        else:
-            node1.rank += 1
-            node2.rank = 0
-            node2.parent = node1
 
     def _get_node(self, data):
         if data in self.forest:
@@ -152,8 +147,11 @@ class DisjointSet(DisjointSetBase):
         while node.parent != node:
             node.parent, node = root, node.parent
 
+    def __len__(self):
+        return len(self.forest)
 
-class Node:
+
+class _Node:
     __slots__ = 'parent', 'rank', 'container'
 
     def __init__(self, rank, data):
