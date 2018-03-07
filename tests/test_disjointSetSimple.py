@@ -36,7 +36,7 @@ class TestDisjointSetSimple(TestCase):
         self.djs.forest = [11, 1, 1, 2, 2, 1, 5, 6, 7, 7, 3, 3]
 
         expected = 1
-        actual = self.djs.find(8)
+        actual = self.djs._find(8)
 
         self.assertEqual(expected, actual, msg='Failed to find root')
 
