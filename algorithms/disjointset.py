@@ -169,14 +169,4 @@ class _Node:
 
 
 if __name__ == '__main__':
-    djs = DisjointSetSimple()
-    djs.make_set()
-    djs.make_set()
-    djs.make_set()
-    djs.make_set()
-    djs.make_set()
-    djs.union(1, 2)
-    djs.union(2, 3)
-    djs.union(4, 5)
-    djs.union(4, 3)
-    print(djs.forest)
+    pass
