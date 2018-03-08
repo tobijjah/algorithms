@@ -111,8 +111,8 @@ class DisjointSet(DisjointSetBase):
         self.forest[data] = node
 
     def union(self, data1, data2):
-        node1 = self._find(node=self._get_node(data1))
-        node2 = self._find(node=self._get_node(data2))
+        node1 = self._find(node=self[data1])
+        node2 = self._find(node=self[data2])
 
         if node1 == node2:
             return
@@ -137,15 +137,15 @@ class DisjointSet(DisjointSetBase):
 
         return root
 
-    def _get_node(self, data):
-        if data in self.forest:
-            return self.forest[data]
-
-        raise ValueError('No node for data %s' % data)
-
     def _path_compression(self, node, root):
         while node.parent != node:
             node.parent, node = root, node.parent
+
+    def __getitem__(self, item):
+        if item in self.forest:
+            return self.forest[item]
+
+        raise KeyError('No node for data %s' % item)
 
     def __len__(self):
         return len(self.forest)
@@ -164,7 +164,7 @@ class _Node:
             self.__hash__(),
             self.rank,
             self.container,
-            self.parent.__hash__()
+            self.parent.__hash__(),
         )
 
 
