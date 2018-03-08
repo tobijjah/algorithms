@@ -14,13 +14,13 @@ def polygon_area(points):
 
     area = 0
 
-    for idx, point in enumerate(points):
+    for i, point in enumerate(points):
         x_i, y_i = point
-        x_ii, y_ii = points[idx + 1]
+        x_ii, y_ii = points[i + 1]
 
         area += x_i*y_ii - x_ii*y_i
 
-        if idx == len(points)-2:
+        if i == len(points)-2:
             break
 
     return abs(0.5 * area)
