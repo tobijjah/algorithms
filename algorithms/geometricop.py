@@ -46,6 +46,10 @@ def polygon_centroid(points):
     return c_x, c_y
 
 
+def vector_angle():
+    pass
+
+
 if __name__ == '__main__':
     ccw = [
         (1, 1),
