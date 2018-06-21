@@ -3,7 +3,15 @@ from abc import (ABCMeta,
                  abstractmethod,)
 from string import (digits,
                     whitespace,
-                    ascii_lowercase,)
+                    ascii_letters,)
+"""
+Token types
+
+WHITESPACE = {\t, \n, \r, \x0b, \x0c}
+OPERATOR = {+, -, *, /}
+NUMBER(FLOAT, INTEGER) = {[0-9], .}
+SYMBOL(VARIABLE, FUNCTION) = {[A-Za-z]}
+"""
 
 
 class TokenBuilder(metaclass=ABCMeta):
@@ -20,7 +28,8 @@ class TokenBuilder(metaclass=ABCMeta):
         """Add char and return self"""
 
     def __repr__(self):
-        return '<{}('.format(self.__class__.__name__)
+        chars = [c.char for c in self.chars]
+        return '<{}(type={}, chars={}) at {:X}>'.format(self.__class__.__name__, self.typ, chars, id(self))
 
     @classmethod
     @abstractmethod
@@ -43,11 +52,6 @@ class WhitespaceTokenBuilder(TokenBuilder):
     def __iadd__(self, char):
         self.chars.append(char)
         return self
-
-    def __repr__(self):
-        msg = super().__repr__()
-        chars = [c.char for c in self.chars]
-        return '{}type={}, chars={}) at {:X}>'.format(msg, self.typ, chars, id(self))
 
     @classmethod
     def valid(cls, char):
@@ -74,18 +78,17 @@ class NumberTokenBuilder(TokenBuilder):
         if self.decimal_point == 0:
             return Token(token.chars, 'INTEGER', token.row, token.column)
 
-        else:
-            return Token(token.chars, 'FLOAT', token.row, token.column)
+        return Token(token.chars, 'FLOAT', token.row, token.column)
 
     def __iadd__(self, char):
-        if self.decimal_point <= 1:
-            if char.char == '.':
+        if char.char == '.':
+            if self.decimal_point < 1:
                 self.decimal_point += 1
+            else:
+                raise ValueError('Illegal number of decimal points')
 
-            self.chars.append(char)
-            return self
-
-        raise ValueError('Illegal number of decimal points')
+        self.chars.append(char)
+        return self
 
     @classmethod
     def valid(cls, char):
@@ -97,14 +100,65 @@ class NumberTokenBuilder(TokenBuilder):
             return True
         return False
 
-    def __repr__(self):
-        return super().__repr__()
+
+class OperatorTokenBuilder(TokenBuilder):
+    # Token grammar
+    OPERATOR = '+-*/^()'
+
+    def __init__(self):
+        super().__init__('OPERATOR')
+
+    def __iadd__(self, char):
+        self.chars.append(char)
+        return self
+
+    @classmethod
+    def valid(cls, char):
+        return False
+
+    @classmethod
+    def identifier(cls, char):
+        if char.char in cls.OPERATOR:
+            return True
+        return False
+
+
+class SymbolTokenBuilder(TokenBuilder):
+    # Token grammar
+    SYMBOL = ascii_letters
+
+    def __init__(self):
+        super().__init__('SYMBOL')
+
+    def token(self):
+        token = super().token()
+
+        if len(self.chars) > 1:
+            return Token(token.chars, 'FUNCTION', token.row, token.column)
+
+        return Token(token.chars, 'VARIABLE', token.row, token.column)
+
+    def __iadd__(self, char):
+        self.chars.append(char)
+        return self
+
+    @classmethod
+    def valid(cls, char):
+        return cls.identifier(char)
+
+    @classmethod
+    def identifier(cls, char):
+        if char.char in cls.SYMBOL:
+            return True
+        return False
 
 
 class TokenBuilderFactory:
     BUILDERS = [
         WhitespaceTokenBuilder,
         NumberTokenBuilder,
+        OperatorTokenBuilder,
+        SymbolTokenBuilder,
     ]
 
     @classmethod

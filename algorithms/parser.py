@@ -25,7 +25,7 @@ class Grammar:
     WHITESPACE = string.whitespace
 
 
-class Scanner(Grammar):
+class Scanner:
     def __init__(self, expression):
         self.expression = expression
         self.exp_len = len(expression) - 1
@@ -37,7 +37,7 @@ class Scanner(Grammar):
         if self.current <= self.exp_len:
             return Char(self.expression[self.current], 0, 0, 0)
 
-        return __class__.EOF
+        return None
 
     def backward(self, step):
         self.current -= step
@@ -66,9 +66,10 @@ class Lexer:
 
 
 if __name__ == '__main__':
-    ex = '    01000x     ^  2 +2x+3'
+    ex = '2.311*y*x^3+sin(x+.3)^2+2x+23'
     scan = Scanner(ex)
     lex = Lexer(scan)
-    print(lex.get())
-    print(lex.get())
-    print(lex.get())
+    token = lex.get()
+    while token is not None:
+        print(token)
+        token = lex.get()
