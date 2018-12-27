@@ -20,7 +20,7 @@ X, Y = np.meshgrid(x_interval, y_interval)
 Z = bivariate_normal(X, Y, sigma_x, sigma_y, mu_x, mu_y)
 Z = np.round(Z * 1000, 3)  # probability densities under pdf never > 1, just move the decimal dot to get a greater Z
 
-# 4 class colorization, next time use quartiles np.percentile
+# 4 class histogram colorization, next time use quartiles with np.percentile
 _, bins = np.histogram(Z, bins=4)
 
 color_definitions = [
